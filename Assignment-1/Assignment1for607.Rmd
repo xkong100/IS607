@@ -1,0 +1,13 @@
+---
+title: "Assignment 1 Result"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+dat<-read.csv("/Users/vivian/Desktop/Data Science/Movie_Scales.csv")
+dat
+```
