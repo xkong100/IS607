@@ -1,0 +1,76 @@
+---
+title: "Week 3"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Homework 3 
+```{r}
+library(stringr)
+raw.data <-"555-1239Moe Szyslak(636) 555-0113Burns, C. Montgomery555-6542Rev. Timothy Lovejoy555 8904Ned Flanders636-555-3226Simpson, Homer5553642Dr. Julius Hibbert"
+raw.data
+name <- unlist(str_extract_all(raw.data, "[[:alpha:]., ]{2,}"))
+```
+(a). Use the tools of this chapter to rearrange the vector so that all elements conform to the standard firstname last_name.
+```{r}
+name2 <- sub(" [A-z]{1}\\. "," ",name)
+name3 <- sub("(\\w+),\\s(\\w+)","\\2 \\1", name2)
+name4 <- sub("[A-z]{2,3}\\. ","",name3)
+name4
+```
+(b). Construct a logical vector indicating whether a character has a title.
+```{r}
+title <- str_detect(name3,"[A-z]{2,3}\\. ")
+df <- data.frame(name3, title)
+df
+```
+(c). Construct a logical vector indicating whether a character has a second name. 
+```{r}
+secondname <- str_detect(name," [A-z]{1}\\. ")
+df <- data.frame(name, secondname)
+df
+```
+4. Describe the tyoes of strings that conform to the following regular expressions and construct an exmaple that is matched by the regular expression.
+(a). [0-9]+\\$
+One or more numbers followed by $ symbol.
+```{r}
+library(stringr)
+example <- c ("12$", "45$")
+str_detect(example, "[0-9]+\\$")
+```
+(b). \\b[a-z]{1,4}\\b
+A word contains 1 to 4 letters.
+```{r}
+example2 <- c("ok", "four")
+str_detect(example2, "\\b[a-z]{1,4}\\b" )
+```
+(c). .*?\\.txt$
+string ends with .txt
+```{r}
+example3 <- c ("abc.txt", "1.txt")
+str_detect(example3,".*?\\.txt$" )
+```
+(d). \\d{2}/\\d{2}/\\d{4}
+numbers have format in nn/nn/nnnn
+```{r}
+example4 <- c("01/09/1991", "08/14/1965")
+str_detect(example4, "\\d{2}/\\d{2}/\\d{4}")
+```
+(e).<(.+?)>.+?</\\1>
+characters inside <> followed by another charater in the <> with / in it.
+```{r}
+example5 <- c("<tag>Text</tag>")
+str_detect(example5, "<(.+?)>.+?</\\1>")
+```
+9. The following code hides a secret message.
+```{r}
+secret_message <- paste("clcopCow1zmstc0d87wnkig7OvdicpNuggvhryn92Gjuwczi8hqrfpRxs5Aj5dwpn0Tanwo
+Uwisdij7Lj8kpf03AT5Idr3coc0bt7yczjatOaootj55t3Nj3ne6c4Sfek.r1w1YwwojigO
+d6vrfUrbz2.2bkAnbhzgv4R9i05zEcrop.wAgnb.SqoU65fPa1otfb7wEm24k6t3sR9zqe5
+fy89n6Nd5t9kc4fE905gmc4Rgxo5nhDk!gr")
+message <- unlist(str_extract_all(secret_message, "[[:upper:].]{1,}"))
+message <- str_replace_all(paste(message, collapse = ''), "[.]", " ")
+message
+```
