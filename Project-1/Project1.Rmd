@@ -1,0 +1,52 @@
+---
+title: "Project 1"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Player's Seven Round Match Results
+Player number, Round Number (1-7), Outcome (W, L, D), Opponent's player number, Opponent's Pre Chess Rating. 
+
+```{r}
+library(stringr)
+library(knitr)
+library(ggplot2)
+chess <- readLines("tournamentinfo.txt")
+str(chess)
+```
+## extract information
+# We need player's name, player's state, total number of points, player's pre-rating, average pre Chess Rating of Opponents.
+```{r}
+names <- (str_trim(unlist(str_extract_all(chess, "([[:alpha:] ]-?){15,31}"))))[2:65]
+head(names);
+states <- str_trim(unlist(str_extract_all(chess, " ON| OH | MI ")))
+str(states);
+number_points <- unlist(str_extract_all(chess, "[:digit:][//.][:digit:]"))
+str(number_points)
+prerating <- as.integer(sub(pattern = 'R: ', replacement = '', x = unlist(str_extract_all(chess, "R: [[:digit:] ]{4}"))))
+str(prerating)
+opponent <- gsub("\\|", " ", str_sub(unlist(str_extract_all(chess, "[:digit:][//.][:digit:][|DLWUXBH[:digit:] ]{44}")), start = 10, end = 47))
+str(opponent)
+list_opponent <- (strsplit(opponent, " W | D | U | H | B | X | L"))
+head(list_opponent)
+```
+## convert the prerating to a matrix and convert it to integer so that we can calculate the mean
+```{r}
+matrix1<- sapply(list_opponent, as.numeric)
+matrix2 <- matrix(prerating[matrix1], nrow = 7)
+average <- as.integer(format(apply(matrix2, 2, mean, na.rm = TRUE), digits= 4))
+str(average)
+```
+## final outcomes
+```{r}
+final_outcomes <- data.frame(names, states, number_points, prerating, average)
+str(final_outcomes)
+kable(head(final_outcomes))
+difference <- (final_outcomes$prerating - final_outcomes$average)
+difference
+write.table(final_outcomes, file="chessoutcome.csv", sep=",", row.names= FALSE)
+```
