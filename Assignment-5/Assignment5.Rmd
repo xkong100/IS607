@@ -1,0 +1,80 @@
+---
+title: "Assignment 5"
+author: "Vivian Kong"
+date: "September 30, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## (1) Create a .CSV file that includes all of the information above.
+The CSV file is saved in the Github.
+
+## (2) Read the information from your .CSV file into R, and use tidyr and dplyr as needed to tidy and transform your data.
+
+```{r}
+library(tidyr)
+library(dplyr)
+require(knitr)
+data <- read.csv("https://raw.githubusercontent.com/xkong100/IS607/master/Assignment-5/Airline.csv", stringsAsFactors = FALSE, check.names = FALSE, na.strings = c("", "NA"))
+kable(head(data))
+```
+
+# remove the NA in the 3rd row
+
+```{r}
+data <- data.frame(data[-3, ])
+kable(head(data))
+```
+
+# Give name for rows and columns and replace the rows which still have NA 
+
+```{r}
+colnames(data)[1]="Airline"
+colnames(data)[2]="Status"
+data[2,1]="ALASKA"
+data[4,1]="AM WEST"
+kable(head(data))
+```
+
+# Now, we can use "gather" of tidyr to gather the rows and columns
+
+```{r}
+tdata <- gather(data, "Destination", "Number_of_time", 3:7)
+kable(head(tdata))
+```
+
+# spread the "on time" and "delay"
+
+```{r}
+tdata1 <- spread(tdata, key= Status, value = Number_of_time)
+colnames(tdata1)[4]="ontime"
+kable(head(tdata1))
+```
+
+## (3) Perform analysis to compare the arrival delays for the two airlines.
+
+# Convert delayed and ontime to numerical value so that it is easy to calculate. 
+
+```{r}
+tdata1 <- within(tdata1, {delayed <- as.numeric(as.character(delayed))
+ontime <-as.numeric(as.character(ontime))})
+
+# Use "mutate" to preserve the old list but add new columns of "total" and "PercentDelayed"
+
+tdata1<-mutate(tdata1, Total= delayed + ontime, PercentDelayed = delayed / Total*100)
+tdata1 <- arrange(tdata1, PercentDelayed)
+kable(tdata1)
+```
+
+# group and find the average delayed percent by Airlines
+
+```{r}
+delays <- tdata1 %>% group_by(Airline) %>% summarise(MeanPercent= round(mean(PercentDelayed, 0)))
+delays
+```
+
+##Alaska is delayed 19% and AM WEST is 18% of the time.
+
