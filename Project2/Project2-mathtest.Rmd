@@ -1,0 +1,55 @@
+---
+title: "Math Test Scores"
+author: "Vivian Kong"
+date: "October 8, 2016"
+output: html_document
+---
+## (1) Create a .CSV file that includes all of the information above.
+The CSV file is saved in the Github.
+
+## (2) Read the information from your .CSV file into R, and use tidyr and dplyr as needed to tidy and transform your data.
+
+```{r}
+library(tidyr)
+library(dplyr)
+require(knitr)
+mathtest <- read.csv("https://raw.githubusercontent.com/xkong100/IS607/master/Project2/Math_Test_Results_2006-2012_-_Citywide_-_SWD.csv", stringsAsFactors = FALSE, check.names = FALSE, na.strings = c("", "NA"))
+kable(head(mathtest))
+```
+
+# Get rid of useless columns
+
+```{r}
+mathtest <- data.frame(mathtest[,-(c(3,7,9,11,13,15))])
+kable(head(mathtest))
+```
+
+# Convert the Number of levels' columns into numerical value to help us calculate later. Also Find the total non-passing students and total passing students.
+
+```{r}
+tmathtest <- within(mathtest, {Num.Level.1 <- as.numeric(as.character(Num.Level.1))
+Num.Level.2 <-as.numeric(as.character(Num.Level.2))
+Num.Level.3.and.4 <- as.numeric(as.character(Num.Level.3.and.4))})
+
+tmathtest1<-mutate(tmathtest, Total_non_passing= Num.Level.1 + Num.Level.2)
+tmathtest2 <- gather(tmathtest1, "No Passing", "Non_Passing_students",5:6 )
+tmathtest3 <- mutate(tmathtest2, Total_passing = Num.Level.3.and.4)
+tmathtest4 <- gather(tmathtest3, "Passing", "Passing_students", 5:6)
+tmathtest5 <- data.frame(tmathtest4[,-5])
+kable(head(tmathtest5))
+```
+
+# Analysis: Find the percentage of non_passing student. We need to convert "Number. Tested" into numerical value first.
+
+```{r}
+tmathtest6 <- within(tmathtest5, {Number.Tested <- as.numeric(as.character(Number.Tested))})
+tmathtest7 <- mutate(tmathtest6, percentage_non_passing = Total_non_passing / Number.Tested * 100)
+kable(head(tmathtest7))
+```
+
+# Grouping by grade and year, it will clearly show use how many students did not pass the exams at that year and grade.
+```{r}
+Non_Passing_rate <- tmathtest7 %>% group_by(Grade,Year) %>% summarise(MeanPercent= round(mean(percentage_non_passing, 0)))
+Non_Passing_rate
+```
+
