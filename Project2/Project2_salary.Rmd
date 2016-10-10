@@ -1,0 +1,70 @@
+---
+title: "Project2 Professors’ salaries"
+author: "Vivian Kong"
+date: "October 9, 2016"
+output: html_document
+---
+
+## (1) Create a .CSV file that includes all of the information above.
+The CSV file is saved in the Github.
+
+## (2) Read the information from your .CSV file into R, and use tidyr and dplyr as needed to tidy and transform your data.
+
+##(3) Analysis ( I did (2) and (3) together)
+
+```{r}
+library(tidyr)
+library(dplyr)
+require(knitr)
+salary1<- read.csv("https://raw.githubusercontent.com/xkong100/IS607/master/Project2/Salaries.csv", stringsAsFactors = FALSE, check.names = FALSE, na.strings = c("", "NA"))
+kable(head(salary1))
+```
+
+# We want to analyze professors' salary when they service under 20 years.
+
+```{r}
+salary1 <- data.frame(salary1[,-4])
+salary2 <- salary1 %>% filter(yrs.service <=20)
+salary3 <- salary2 %>% arrange(salary)
+kable(head(salary3))
+salary3 %>% summarise (Mean_salary_under20yrs = mean(salary), min_salary_under20yrs = min(salary), max_salary_under20yrs= max(salary))
+
+```
+
+The mean salary is $108768.8, the minimum salary is $63100, and the maximum salary is $204000 when the professors service under 20 years.
+
+
+# We also want to find out professor's salary when they service more than 20 years.
+
+
+```{r}
+salary4 <- salary1 %>% filter(yrs.service > 20)
+salary5 <- salary4 %>% arrange(salary)
+kable(head(salary5))
+salary5 %>% summarise (Mean_salary_morethatn20yrs = mean(salary), min_salary_morethan20yrs = min(salary), max_salary_morethan20yrs= max(salary))
+
+```
+
+The mean salary is $122103.9, the minimum salary is $57800, and the maximum salary is $231545 when the professors service more than 20 years.
+
+By comparing the mean salary, we can conclude that, the service time and the salary has positive relationship.
+
+
+# We also want to find out the relationship between salary and genders.
+
+```{r}
+salary6 <- salary1 %>% spread(sex, salary)
+salary6$Female[is.na(salary6$Female)] <-0
+salary6$Male[is.na(salary6$Male)] <- 0
+salary7 <- within(salary6, {Female <- as.numeric(as.character(Female))
+Male <-as.numeric(as.character(Male))})
+kable(head(salary7))
+
+salary7 %>% summarise (Mean_salary_Female = mean(Female),  max_salary_Female= max(Female),Mean_salary_male=mean(Male), max_salary_male=max(Male))
+```
+
+From our analysis, we can conclude that Female's salary is lower than the Male's salary by comparing their mean salaries and max salaries.
+
+
+
+
