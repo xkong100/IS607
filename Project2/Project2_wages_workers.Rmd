@@ -1,0 +1,55 @@
+---
+title: "Wages for workers"
+author: "Vivian Kong"
+date: "October 9, 2016"
+output: html_document
+---
+
+## (1) Create a .CSV file that includes all of the information above.
+The CSV file is saved in the Github.
+
+## (2) Read the information from your .CSV file into R, and use tidyr and dplyr as needed to tidy and transform your data.
+
+```{r}
+library(tidyr)
+library(dplyr)
+library(lattice)
+require(knitr)
+wage<- read.csv("https://raw.githubusercontent.com/xkong100/IS607/master/Project2/Wages1.csv", stringsAsFactors = FALSE, check.names = FALSE, na.strings = c("", "NA"))
+kable(head(wage))
+```
+
+# To find the wages of different genders whose experince is 10 years and the education year is 14, we need to organize our data.
+```{r}
+wage <- data.frame(wage)
+wage1 <- wage %>% spread (sex, wage)
+wage1$female[is.na(wage1$female)] <-0
+wage1$male[is.na(wage1$male)] <- 0
+wage2 <- wage1 %>% filter(exper == 10)
+wage3 <- wage2 %>% filter (school == 14)
+wage4 <- wage3 %>% arrange(exper)
+colnames(wage4)[1]="Worker_id"
+kable(head(wage4))
+```
+
+# After we organize our data, we can use 'summarise' to analyze the data.
+
+```{r}
+wage4 %>% summarise (Mean_femalewage_10yrs = mean(female), max_femalewage_10yrs = max(female), mean_malewage_10yrs= mean(male), max_malewage_10yrs=max(male))
+```
+
+When we control the experience year is 10 years and education is 14 years, Female's mean wage is higher than male's wage
+
+# We also want to find out if the education will affect wage rate. We'll set experience year=10 years.
+```{r}
+wage5 <- wage %>% filter(exper == 10)
+wage6 <- wage5 %>% arrange(school)
+kable(head(wage6))
+xyplot(wage6$school ~ wage6$wage, data = wage6,
+  xlab = "Education years log scale",
+  ylab = "Wage log scale",
+  main = "Education and wage"
+)
+```
+
+Clearly, by looking at the xy-plot, we find that there is a positive relationship between education and wage. When worker have more years in shcool, the wage tends to be higher.
