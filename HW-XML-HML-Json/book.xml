@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<books>
+	<book id="1">
+		<Title>Linear Algebra And Its Application</Title>
+		<Authors>David C. Jay</Authors>
+		<Publisher>Addision Westley</Publisher>
+		<ISBN>0-201-77014-8</ISBN>
+		<Edition>3rd</Edition>
+	</book>
+	<book id="2">
+		<Title>Introduction to Operation Research</Title>
+		<Authors>Frederick Hillier, Gerald Lieberman</Authors>
+		<Publisher>Mcgraw Hill</Publisher>
+		<ISBN>978-0-07-337629-5</ISBN>
+		<Edition>9th</Edition>
+	</book>
+	<book id="3">
+		<Title>Calculus</Title>
+		<Authors>James Stewart</Authors>
+		<Publisher>Thomson</Publisher>
+		<ISBN>0-534-39339-x</ISBN>
+		<Edition>5th</Edition>
+	</book>
+</books>
