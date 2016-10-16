@@ -1,0 +1,42 @@
+---
+title: "Week8 Assignment"
+author: "Vivian Kong"
+date: "October 15, 2016"
+output: html_document
+---
+## XML and Parsing XML
+```{r}
+library(XML)
+library(RCurl)
+library(plyr)
+require(knitr)
+Xmlurl <- "https://raw.githubusercontent.com/xkong100/IS607/master/HW-XML-HML-Json/book.xml"
+books <- getURL(url=Xmlurl)
+xmlbooks <- xmlParse(books, validate=F)
+books1 <- ldply(xmlToList(books), data.frame)
+str(books1)
+kable(books1)
+```
+
+## HTML and Parsing HTML
+
+```{r}
+htmlurl <- "https://raw.githubusercontent.com/xkong100/IS607/master/HW-XML-HML-Json/book.html"
+books2 <-getURL(url=htmlurl)
+htmltext <- htmlParse(books2, asText = TRUE)
+htmltable <- xpathApply(htmltext, "//table//tbody//tr")
+htmlbooks <- as.data.frame(t(sapply(htmltable, function(x)unname(xmlSApply(x, xmlValue))[c(1,3,5,7,9)])))
+colnames(htmlbooks) <- c("Title", "Authors", "Publisher", "ISBN", "Edition")
+kable(htmlbooks)
+```
+
+## Json and Parsing Json
+
+```{r}
+library(jsonlite)
+jsonurl <- "https://raw.githubusercontent.com/xkong100/IS607/master/HW-XML-HML-Json/books.json"
+books3 <- getURL(url=jsonurl)
+jsonbooks <-fromJSON(books3)
+str(jsonbooks)
+kable(jsonbooks)
+```
