@@ -1,0 +1,56 @@
+---
+title: "Week10 Assignment"
+author: "Vivian Kong"
+date: "11/4/2016"
+output: html_document
+---
+
+I struggled with this assginment a lot. First of all, when I use tm, it keeps giving me the error message. So I have to google to find the solution. I found out that I need to update my R so that the Rstudio can install tm correctly. 
+
+```{r}
+library(tm)
+library(RTextTools)
+library(dplyr)
+#Get the directory
+ham <- "/Users/vivian/Desktop/SPS/607/Assignment11/easy_ham_2/"
+spam <- "/Users/vivian/Desktop/SPS/607/Assignment11/spam_2/"
+#Sample the corpuses and add meta labels
+spamcorpdat <- Corpus(DirSource(spam), readerControl = list(language="lat"))
+hamcorpdat <- Corpus(DirSource(ham), readerControl = list(language="lat"))
+spamcorpdat <- spamcorpdat[1:500]
+hamcorpdat <- hamcorpdat[1:2500]
+spamcorpdat <- sample(spamcorpdat, 250)
+hamcorpdat <- sample(hamcorpdat, 250)
+meta(spamcorpdat, tag = "type") <- "spam"
+meta(hamcorpdat, tag = "type") <- "ham"
+spam_corpus <- c (spamcorpdat, hamcorpdat, recursive = T)
+spamcorpusR <- sample(spam_corpus)
+spamcorpusR
+
+# Cleaning methods. I tried to use "meta" of tm at the beginning but that does not work. I struggled with this part also. 
+
+corpus_clean <- tm_map(spamcorpusR,   tolower) %>% tm_map(removeNumbers) %>% tm_map(removeWords, stopwords()) %>% tm_map(removePunctuation) %>% tm_map(stripWhitespace) %>% tm_map(PlainTextDocument)
+
+spamtm <- DocumentTermMatrix(corpus_clean)
+spamtm
+spamtype <- unlist(meta(corpus_clean, "type")[,1])
+head(spamtype,5)
+
+#Prepare the container
+N <- length(spamtype)
+container <- create_container(
+  spamtm,
+  labels = spamtype,
+  trainSize = 1:400,
+  testSize = 401:N,
+  virgin = FALSE
+)
+
+slotNames(container)
+
+# Training and classifying
+svm <- train_model(container, "SVM")
+svm_out <- classify_model(container, svm)
+head(svm_out)
+
+```
