@@ -1,0 +1,123 @@
+---
+title: "Project 4"
+author: "Vivian Kong"
+date: "11/13/2016"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+## Install Neo4j
+
+
+## Connect to MySQL database, I will use the flight database
+```{r}
+library(RMySQL)
+mydb <- dbConnect(MySQL(), user = 'root', password = '081465zN', host = 'localhost', dbname='flight')
+```
+
+## pull out the tables and disconnet to MySQL after we finish importing
+```{r}
+airlines <- dbReadTable(mydb, "airlines")
+airports <- dbReadTable(mydb, "airports")
+flights <- dbReadTable(mydb, "flights")
+planes <-dbReadTable(mydb, "planes")
+weather <- dbReadTable(mydb, "weather")
+dbDisconnect(mydb)
+```
+## Since the flights data base is huge, so I only choose January 1st as my day to import the data.
+```{r}
+flights <- data.frame(flights)
+flights <- flights[flights$month ==1 & flights$day == 1,]
+```
+## Export the table
+```{r}
+write.csv(airlines, "~/Desktop/data/airlines.csv", row.names = FALSE)
+write.csv(airports, "~/Desktop/data/airports.csv", row.names = FALSE)
+write.csv(flights, "~/Desktop/data/flights.csv", row.names = FALSE)
+write.csv(planes, "~/Desktop/data/planes.csv", row.names = FALSE)
+write.csv(weather, "~/Desktop/data/weather.csv", row.names = FALSE)
+```
+
+
+## Using Neo4j
+```{r}
+library(RNeo4j)
+graph = startGraph("http://localhost:7474/db/data/", username="neo4j", password="081465zN")
+clear(graph, input = FALSE)
+```
+
+## Node: Airlines
+```{r}
+addConstraint(graph, "Airline", "carrier")
+
+q1 <- "
+CREATE (a:Airline {carrier: {carrier}, name: {name}})
+"
+
+t = newTransaction(graph)
+
+for (i in 1:nrow(airlines)) {
+  carrier = airlines$carrier[i]
+  name = airlines$name[i]
+
+  appendCypher(t, 
+               q1, 
+               carrier = carrier, 
+               name = name)
+}
+
+commit(t)
+```
+
+##Node: flights
+```{r}
+q2 <- '
+CREATE (b:Flight {name: {name}, carrier: {carrier},  dest: {dest}})
+'
+
+t = newTransaction(graph)
+
+for (i in 1:nrow(flights)) {
+  name = flights$flight[i]
+  carrier = flights$carrier[i]
+  origin = flights$origin[i]
+  dest = flights$dest[i]
+
+  appendCypher(t, 
+               q2, 
+               name = name, 
+               carrier = carrier,
+               dest = dest)
+}
+
+commit(t)
+```
+
+## Edge Flight and Carrier
+
+```{r}
+q3 <- '
+MATCH (a:Flight) WHERE a.carrier={carrier} AND a.name={fnum}
+MATCH (b:Airline) WHERE b.carrier={carrier}
+CREATE (a) -[r:Serves] -> (b)
+'
+
+t = newTransaction(graph)
+
+for (i in 1:nrow(flights)) {
+  carrier = flights$carrier[i]
+  fnum = flights$flight[i]
+
+  appendCypher(t, 
+               q3, 
+               fnum = fnum,
+               carrier = carrier)
+}
+commit(t)
+```
+
+## Conclusions
+
+I am new to Neo4j at the beginning of the project. However, after I did tons of research about Neo4j, I start to like the ways of Neo4j to present the data and relationship between data. Clearly, its advantage is describing relationships between nodes. For analysis, visualizing data is a valuable tool. However, when I am trying to run the database of the flights. If I did not set the date is January 1st, running the entire database of flights seems impossible. It takes a long time to process such a huge data. If I remember correctly about Mysql, it only took a very short period of time to run the entire database. I am still more familiar with the relational database and mysql's language and structure. It provides better data intergrity than NoSQL database. 
+Since I learned NoSQL as well. I think I will have more tools help me analyze the data. When I process the huge data, I may need to use Mysql. However, when I want to find and describe the relationship of the data or show the data graphically, I will use NoSQL. 
