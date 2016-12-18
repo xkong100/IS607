@@ -1,0 +1,223 @@
+---
+title: "Final Project for Data 607"
+author: "Vivian Kong"
+date: "12/17/2016"
+output: html_document
+---
+### Final Project -- Iceland
+
+This year, I graduated with my Master. My mom and I decided to travel to a country we had never been before to celebrate. Mexico? Of course! Maybe the top choice of Americans. Jamaica? sure! Another Americans' favorite tropical island. Japan? Why not! I can finish my Bridge Class of Data Science in a place of day and night upside down. After I was trying to find my destination in a super picky way. "Iceland" comes out of my mind. Since I was young, I was looking forward to this place. It would be an amazing place to explore and it was so cool for this humid summer of New York. The following review was written by a traveler that post on the lonely planet website.
+
+```{r}
+library(rvest)
+hotels <- html("https://www.lonelyplanet.com/iceland")
+hotels %>% html_nodes(" .js-love-letter")%>%
+  html_text()
+```
+
+
+After I had a great adventure in Iceland, my collegues, my friends and my families told me that they know some other people also visit this amazing place this summer. It makes me realize that having a vacation in Iceland is not a "wired" choice anymore. Nobody will ask me "why do you want to go there?".
+
+Tourism is now the Iceland's biggest industry. The following codes record travelers' citizenship and the number of travelers. Since Iceland's winter is brutal and not a lot of people want to travel at that time, I only compared the number of travelers from different countries in summer of 2014,2015, and 2016.
+
+
+```{r}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(plyr)
+library(stringr)
+require(knitr)
+tourist<- read.csv("https://raw.githubusercontent.com/xkong100/IS607/master/final/tourist.Info.csv", stringsAsFactors = FALSE, check.names = FALSE, na.strings = c("", "NA"))
+kable(head(tourist))
+```
+
+```{r}
+# clean up the data and get rid of columns of winter month.
+tourist.summer <- data.frame(tourist[,-c(5:13,17:25, 29:30)])
+tourist.summer <- tourist.summer[-c(1),]
+
+# rename the columns and that will be much easier to use later.
+colnames(tourist.summer)[1] <- "Country"
+colnames(tourist.summer)[2] <- "July.2014"
+colnames(tourist.summer)[3] <- "August.2014"
+colnames(tourist.summer)[4] <- "September.2014"
+colnames(tourist.summer)[5] <- "July.2015"
+colnames(tourist.summer)[6] <- "August.2015"
+colnames(tourist.summer)[7] <- "September.2015"
+colnames(tourist.summer)[8] <- "July.2016"
+colnames(tourist.summer)[9] <- "August.2016"
+colnames(tourist.summer)[10] <- "September.2016"
+kable(head(tourist.summer))
+
+# To analyze the data, we also need to convert columns except "country" to numerical value
+
+tourist.summer$July.2014 <- as.numeric(tourist.summer$July.2014)
+tourist.summer$August.2014 <- as.numeric (tourist.summer$August.2014)
+tourist.summer$September.2014 <- as.numeric(tourist.summer$September.2014)
+
+
+tourist.summer$July.2015 <- as.numeric(tourist.summer$July.2015)
+tourist.summer$August.2015 <- as.numeric (tourist.summer$August.2015)
+tourist.summer$September.2015 <- as.numeric(tourist.summer$September.2015)
+
+
+tourist.summer$July.2016 <- as.numeric(tourist.summer$July.2016)
+tourist.summer$August.2016 <- as.numeric (tourist.summer$August.2016)
+tourist.summer$September.2016 <- as.numeric(tourist.summer$September.2016)
+
+# Now, I can combine July, August and September as total for each year and add the total column for each year
+tourist.summer <-tourist.summer %>% mutate(summer.2014 = tourist.summer$July.2014 + tourist.summer$August.2014 + tourist.summer$September.2014, summer.2015 = tourist.summer$July.2015 + tourist.summer$August.2015 + tourist.summer$September.2015, summer.2016 = tourist.summer$July.2016 + tourist.summer$August.2016 + tourist.summer$September.2016)
+kable(head(tourist.summer))
+
+#Find the mean value for each year
+tourist.summer %>% summarise(mean.2014 = mean(tourist.summer$summer.2014))
+tourist.summer %>% summarise(mean.2015 = mean(tourist.summer$summer.2015))
+tourist.summer %>% summarise(mean.2016 = mean(tourist.summer$summer.2016))
+
+# Here, I rank each country and that is so much easier to find which country's people go to Iceland most.
+
+tourist.summer$rank.2014 <-rank(-tourist.summer$summer.2014)
+tourist.summer$rank.2015 <-rank(-tourist.summer$summer.2015)
+tourist.summer$rank.2016 <-rank(-tourist.summer$summer.2016)
+kable(head(tourist.summer[,-c(2:10)]))
+
+#pie chart for summer 2014
+tourist.summer1 <- tourist.summer %>% filter (tourist.summer$summer.2014 >  15000)
+pct1 <- round(tourist.summer1$summer.2014/sum(tourist.summer1$summer.2014)*100)
+lables1 <- paste(tourist.summer1$Country,pct1)
+lables1<-paste(lables1,"%", sep="")
+pie(tourist.summer1$summer.2014, labels=lables1, col=rainbow(length(tourist.summer1$Country)))
+
+#pie chart for summer 2015
+tourist.summer2 <- tourist.summer %>% filter (tourist.summer$summer.2015 >  15000)
+pct2 <- round(tourist.summer2$summer.2015/sum(tourist.summer1$summer.2015)*100)
+lables2 <- paste(tourist.summer1$Country,pct2)
+lables2<-paste(lables2,"%", sep="")
+pie(tourist.summer2$summer.2015, labels=lables2, col=rainbow(length(tourist.summer1$Country)))
+
+#pie chart for summer 2016
+tourist.summer3 <- tourist.summer %>% filter (tourist.summer$summer.2016 >  15000)
+pct3 <- round(tourist.summer3$summer.2016/sum(tourist.summer1$summer.2016)*100)
+lables3 <- paste(tourist.summer1$Country,pct3)
+lables3<-paste(lables3,"%", sep="")
+pie(tourist.summer3$summer.2016, labels=lables3, col=rainbow(length(tourist.summer1$Country)))
+```
+
+After I clean up the data and some necessary analysis. I find out that although there are many travelers from European Countries, U.S.A is still the largest population among all the countries. The other day, I read an article. In the article, many Icelanders complain about there are too many travelers. The tourist boom became a large burden on this small island. 
+
+I want to do the hypothesis testing to test if there is a significant difference between the number of travelers from Iceland and the number of travelers from U.S.A at 0.05 significant level.
+
+\[H_0\]: There is no difference between the number of travelers from Iceland and the number of travelers from U.S.A in 2014 (summer)
+\[H_a\]:the number of travelers from U.S.A. in 2014(summer) is significantly less than  the number of travelers from Iceland.
+
+```{r}
+usa.2014 <-c(22998, 22513, 15329)
+iceland.2014 <-c(39623, 36835, 37410)
+var.test(usa.2014,iceland.2014)
+qf(0.95, 2, 2)
+t.test(usa.2014, iceland.2014, var.equal = TRUE, paired = FALSE)
+```
+
+Since p-value is 0.00252 which is less than the significant level, 0.05. We'll reject H0, accept Ha. The number of U.S.A travelers are still significantly less than the Icelanders.
+
+Now, we will compare 2015.
+\[H_0\]: There is no difference between the number of travelers from Iceland and the number of travelers from U.S.A in 2015 (summer)
+\[H_a\]:the number of travelers from U.S.A. in 2015(summer) is significantly less than  the number of travelers from Iceland.
+```{r}
+usa.2015 <-c(37235, 36410, 27972)
+iceland.2015 <-c(44659, 39889, 43851)
+var.test(usa.2015,iceland.2015)
+qf(0.95, 2, 2)
+t.test(usa.2015, iceland.2015, var.equal = TRUE, paired = FALSE)
+```
+
+In this case, the result of Hypotheis testing changed. P-value is 0.0541 that is greater than 0.05. We failed to reject H0. We can not only conlude that there is no significant difference between the number of travelers of Iceland and U.S.A, but we can also see the fast increasing of the number of travelers from U.S.A.
+
+For 2016, we do not need to do hypothesis testing any more. The number of U.S.A's  travelers is far more than the number of Iceland's travelers.
+
+Since the tourism is booming in Iceland, the business of Hotel difinitely will increasing a lot. However, the people from Iceland also complain that since there are so many travelers, they can not book the room  in the local. The following data shows the nationality of travelers and the number of people is booking overnight hotels.
+
+```{r}
+hotel<- read.csv("https://raw.githubusercontent.com/xkong100/IS607/master/final/SAM01102%20(1).csv", stringsAsFactors = FALSE, check.names = FALSE, na.strings = c("", "NA"))
+
+# Clean up the data and change the columns name.
+hotel.summer <- data.frame(hotel[-c(54),])
+colnames(hotel.summer)[2] <- "July.2014"
+colnames(hotel.summer)[3] <- "August.2014"
+colnames(hotel.summer)[4] <- "September.2014"
+colnames(hotel.summer)[5] <- "July.2015"
+colnames(hotel.summer)[6] <- "August.2015"
+colnames(hotel.summer)[7] <- "September.2015"
+colnames(hotel.summer)[8] <- "July.2016"
+colnames(hotel.summer)[9] <- "August.2016"
+colnames(hotel.summer)[10] <- "September.2016"
+
+# Convert to the numerical value
+hotel.summer$July.2014 <- as.numeric(hotel.summer$July.2014)
+hotel.summer$August.2014 <- as.numeric (hotel.summer$August.2014)
+hotel.summer$September.2014 <- as.numeric(hotel.summer$September.2014)
+
+hotel.summer$July.2015 <- as.numeric(hotel.summer$July.2015)
+hotel.summer$August.2015 <- as.numeric (hotel.summer$August.2015)
+hotel.summer$September.2015 <- as.numeric(hotel.summer$September.2015)
+
+hotel.summer$July.2016 <- as.numeric(hotel.summer$July.2016)
+hotel.summer$August.2016 <- as.numeric (hotel.summer$August.2016)
+hotel.summer$September.2016 <- as.numeric(hotel.summer$September.2016)
+nrow(hotel.summer)
+
+# Find the sum of the hotels overnight in summer of 2014, 2015 and 2016.
+hotel.summer <-hotel.summer %>% mutate(summer.2014 = hotel.summer$July.2014 + hotel.summer$August.2014 + hotel.summer$September.2014, summer.2015 = hotel.summer$July.2015 + hotel.summer$August.2015 + hotel.summer$September.2015, summer.2016 = hotel.summer$July.2016 + hotel.summer$August.2016 + hotel.summer$September.2016)
+
+# Find the number of Iceland people that book the hotel overnight and the number of Non-Icelanders that book that hotel overnight.
+sum.2014 <- hotel.summer %>% summarise(total.2014 = sum(hotel.summer$summer.2014))
+sum.2014
+Non.Icelanders.2014 <- 851752 - 41638
+Non.Icelanders.2014
+
+sum.2015 <- hotel.summer %>% summarise(total.2015 = sum(hotel.summer$summer.2015))
+sum.2015
+Non.Icelanders.2015 <- 1037961 - 37505
+Non.Icelanders.2015
+
+sum.2016 <- hotel.summer %>% summarise(total.2016= sum(hotel.summer$summer.2016))
+sum.2016
+Non.Icelanders.2016 <- 1313279 - 37627
+Non.Icelanders.2016
+kable(head(hotel.summer))
+```
+ 
+ The following tables shows the number of Iceland people that book the hotel overnight and the number of Non-Icelanders that book that hotel overnight.
+ 
+ Travelers Time|Icelanders|Non-Icelanders 
+----------|-------------|-----------
+2014 summer|41638  |810114
+2015 summer|37505  |1000456
+2016 summer|37627  |1275652
+
+
+Using this table, we can also find the stacked bar plot. This plot can help us visualize the result easily and quickly.
+
+```{r}
+data <- matrix( c(41638, 37505,37627,810114,1000456,  1275652),
+                nrow=2,
+                ncol=3,
+                byrow=TRUE)
+dimnames(data) <- list(
+  c("Icelanders", "Non-Icelanders") ,              
+  c("2014.summer", "2015.summer","2016.summer")
+                   
+)
+data
+
+barplot(data, main="Icelanders vs. Non-Icelanders stay overnight hotel in the Capital", xlab= "summer", col=c("red", "darkblue"))
+```
+
+By observing the graph, it is clearly to see that there are few Icelanders who can book the hotel overnight. 
+
+
+Like a coin that has two sides. Although tourist booming is a good thing for the country, it also brings big burdens for local people. Housing prices and rents are rising quickly, pollutions are getting worse. If there is a sudden drop in visitors, it may trigger a financial crisis for Iceland again because too many people rely on tourism. When tourist numbers fall, the economy will collapse again. 
+
+
+
